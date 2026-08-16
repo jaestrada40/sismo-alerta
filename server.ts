@@ -15,7 +15,7 @@ import {
 } from './server/db';
 import { registerApiRoutes } from './server/routes';
 import { pollAndNotify } from './server/seismicWatcher';
-import { fetchLatestGuatemalaEarthquakes } from './server/usgsServerFetch';
+import { fetchAllGuatemalaEarthquakes } from './server/mergedEarthquakeFetch';
 import { configurePushService, sendEarthquakePush } from './server/pushService';
 import { configureEmailService, sendEarthquakeEmail, isEmailServiceConfigured } from './server/emailService';
 
@@ -55,7 +55,7 @@ registerApiRoutes(app, db);
 setInterval(() => {
   pollAndNotify({
     db,
-    fetchQuakes: fetchLatestGuatemalaEarthquakes,
+    fetchQuakes: fetchAllGuatemalaEarthquakes,
     sendPush: (sub, eq) => sendEarthquakePush(sub, eq, (endpoint) => deleteSubscriptionByEndpoint(db, endpoint)),
     hasSeenEarthquake,
     markEarthquakeSeen,
