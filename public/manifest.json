@@ -1,0 +1,12 @@
+{
+  "name": "Alerta Sísmica Guatemala",
+  "short_name": "Alerta GT",
+  "description": "Monitoreo y alerta sísmica en tiempo real para Guatemala",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#7f1d1d",
+  "icons": [
+    { "src": "/assets/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
