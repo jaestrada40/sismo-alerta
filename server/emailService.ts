@@ -1,6 +1,7 @@
 // server/emailService.ts
 import nodemailer, { Transporter } from 'nodemailer';
 import type { Earthquake } from '../src/types';
+import { earthquakeEmailSubject, earthquakeEmailText, earthquakeEmailHtml } from './emailTemplates';
 
 let transporter: Transporter | null = null;
 let fromAddress: string = '';
@@ -36,9 +37,9 @@ export async function sendEarthquakeEmail(to: string, earthquake: Earthquake): P
     await transporter.sendMail({
       from: fromAddress,
       to,
-      subject: `Sismo M${earthquake.magnitude.toFixed(1)} · ${earthquake.place}`,
-      text: `Se registró un sismo de magnitud ${earthquake.magnitude.toFixed(1)} en ${earthquake.place}.\n\nRevisa tu zona y sigue el protocolo de seguridad.\n\nMás información: https://earthquake.usgs.gov`,
-      html: `<p>Se registró un sismo de magnitud <strong>${earthquake.magnitude.toFixed(1)}</strong> en <strong>${earthquake.place}</strong>.</p><p>Revisa tu zona y sigue el protocolo de seguridad.</p><p><a href="${earthquake.url}">Más información</a></p>`,
+      subject: earthquakeEmailSubject(earthquake),
+      text: earthquakeEmailText(earthquake),
+      html: earthquakeEmailHtml(earthquake),
     });
   } catch (err: any) {
     console.warn('emailService: fallo enviando correo a', to, err.message);
