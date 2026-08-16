@@ -134,7 +134,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
 
             {/* Directives & Dismiss */}
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <div className="hidden sm:block text-left text-[11px] bg-red-950/70 px-3 py-1.5 rounded-lg border border-red-800 font-bold">
+              <div className="block text-left text-[11px] bg-red-950/70 px-3 py-1.5 rounded-lg border border-red-800 font-bold">
                 <span className="text-yellow-300 block">1. Agáchate</span>
                 <span className="text-yellow-200 block">2. Cúbrete</span>
                 <span className="text-white block">3. Sujétate</span>

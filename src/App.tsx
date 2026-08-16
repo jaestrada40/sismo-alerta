@@ -132,6 +132,19 @@ export default function App() {
     setActiveTab('map');
   };
 
+  // Handle notification click-through via ?eq=<id> query param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const eqId = params.get('eq');
+    if (!eqId || earthquakes.length === 0) return;
+
+    const target = earthquakes.find((eq) => eq.id === eqId);
+    if (target) {
+      handleSimulateEarthquake(target);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [earthquakes]);
+
   const handleReportAdded = (rep: CommunityReport) => {
     setCommunityReports((prev) => [rep, ...prev]);
   };
