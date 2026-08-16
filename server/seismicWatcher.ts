@@ -62,7 +62,11 @@ export async function pollAndNotify(deps: PollDeps): Promise<void> {
   const notifications = selectNotifications(newQuakes, subscriptions);
 
   for (const { subscription, earthquake } of notifications) {
-    await deps.sendPush(subscription, earthquake);
+    try {
+      await deps.sendPush(subscription, earthquake);
+    } catch (err) {
+      console.warn('seismicWatcher: fallo enviando push a suscriptor:', err);
+    }
   }
 
   for (const quake of newQuakes) {

@@ -151,4 +151,30 @@ describe('pollAndNotify', () => {
     ).resolves.toBeUndefined();
     expect(sendPush).not.toHaveBeenCalled();
   });
+
+  it('swallows sendPush errors without throwing, still marks quake as seen', async () => {
+    const quake = makeQuake({ id: 'eq_failed_push', magnitude: 5.0 });
+    const sub = makeSub({ min_magnitude: 4.0 });
+
+    const db = {} as any;
+    const fetchQuakes = vi.fn().mockResolvedValue([quake]);
+    const sendPush = vi.fn().mockRejectedValue(new Error('push endpoint expired'));
+    const hasSeenEarthquake = vi.fn().mockReturnValue(false);
+    const markEarthquakeSeen = vi.fn();
+    const getAllSubscriptions = vi.fn().mockReturnValue([sub]);
+
+    await expect(
+      pollAndNotify({
+        db,
+        fetchQuakes,
+        sendPush,
+        hasSeenEarthquake,
+        markEarthquakeSeen,
+        getAllSubscriptions,
+      })
+    ).resolves.toBeUndefined();
+
+    expect(sendPush).toHaveBeenCalledWith(sub, quake);
+    expect(markEarthquakeSeen).toHaveBeenCalledWith(db, 'eq_failed_push');
+  });
 });
