@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+/* Brand palette derived from the Sismo GT logo (navy #0a2f53, orange #ea6d16).
+   Overriding Tailwind's built-in blue/orange scales repaints every existing
+   bg-blue-900, text-orange-600, etc. utility app-wide without touching
+   component markup — flatter, more saturated than Tailwind's defaults. */
+@theme {
+  --color-blue-50: #f4f7fb;
+  --color-blue-100: #e4edf6;
+  --color-blue-200: #c4d9ee;
+  --color-blue-300: #96bde3;
+  --color-blue-400: #5c9ad6;
+  --color-blue-500: #2d76be;
+  --color-blue-600: #235d95;
+  --color-blue-700: #1b4874;
+  --color-blue-800: #173a5c;
+  --color-blue-900: #132f4a;
+  --color-blue-950: #0b1a28;
+
+  --color-orange-50: #fdf6f2;
+  --color-orange-100: #fbe8db;
+  --color-orange-200: #f6cdb1;
+  --color-orange-300: #f1ad7e;
+  --color-orange-400: #ee904f;
+  --color-orange-500: #eb7b2d;
+  --color-orange-600: #ea6d16;
+  --color-orange-700: #c15c15;
+  --color-orange-800: #9c4d16;
+  --color-orange-900: #793e15;
+  --color-orange-950: #43240e;
+}
+
 /* Custom Leaflet Popups & Tooltips Styling for Professional Polish */
 .leaflet-popup-content-wrapper {
   background: #ffffff !important;

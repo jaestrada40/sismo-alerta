@@ -57,16 +57,11 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between min-h-16 sm:h-20 py-2 sm:py-0 gap-2">
           {/* Logo & National System Title */}
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-            <img
-              src="/assets/icon-64.png"
-              alt="Sismo GT"
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg shadow-md flex-shrink-0 bg-white/90 p-1"
-            />
+            <div className="bg-white rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 shadow-md flex-shrink-0">
+              <img src="/assets/logo.png" alt="Sismo GT" className="h-5 sm:h-7 w-auto" />
+            </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <h1 className="text-sm sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 uppercase whitespace-nowrap">
-                  SISMO ALERT <span className="font-light opacity-90 text-blue-200">GUATEMALA</span>
-                </h1>
                 <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-800 text-blue-200 border border-blue-700">
                   USGS
                 </span>
