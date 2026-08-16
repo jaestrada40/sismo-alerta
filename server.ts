@@ -7,14 +7,12 @@ dotenv.config();
 
 import {
   initDb,
-  insertSubscription,
   deleteSubscriptionByEndpoint,
-  getAllSubscriptions,
   hasSeenEarthquake,
   markEarthquakeSeen,
-  insertReport,
-  getAllReports,
+  getAllSubscriptions,
 } from './server/db';
+import { registerApiRoutes } from './server/routes';
 import { pollAndNotify } from './server/seismicWatcher';
 import { fetchLatestGuatemalaEarthquakes } from './server/usgsServerFetch';
 import { configurePushService, sendEarthquakePush } from './server/pushService';
@@ -30,55 +28,7 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   configurePushService(process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
 }
 
-app.get('/api/push/vapid-public-key', (req, res) => {
-  res.json({ publicKey: process.env.VAPID_PUBLIC_KEY || null });
-});
-
-app.post('/api/push/subscribe', (req, res) => {
-  const { endpoint, keys, minMagnitude, nearbyRadiusKm, userLat, userLng } = req.body;
-  if (!endpoint || !keys?.p256dh || !keys?.auth || typeof minMagnitude !== 'number') {
-    return res.status(400).json({ error: 'Suscripción inválida' });
-  }
-  insertSubscription(db, {
-    endpoint,
-    p256dh: keys.p256dh,
-    auth: keys.auth,
-    min_magnitude: minMagnitude,
-    nearby_radius_km: nearbyRadiusKm ?? null,
-    user_lat: userLat ?? null,
-    user_lng: userLng ?? null,
-  });
-  res.json({ status: 'subscribed' });
-});
-
-app.post('/api/push/unsubscribe', (req, res) => {
-  const { endpoint } = req.body;
-  if (!endpoint) return res.status(400).json({ error: 'endpoint requerido' });
-  deleteSubscriptionByEndpoint(db, endpoint);
-  res.json({ status: 'unsubscribed' });
-});
-
-app.get('/api/reports', (req, res) => {
-  res.json({ reports: getAllReports(db) });
-});
-
-app.post('/api/reports', (req, res) => {
-  const { department, municipality, feltIntensity, buildingType, comments, timestamp, mercalliEstimated, earthquakeId } = req.body;
-  if (!department || !municipality || !feltIntensity || !buildingType || !timestamp || !mercalliEstimated) {
-    return res.status(400).json({ error: 'Reporte incompleto' });
-  }
-  const report = insertReport(db, {
-    department,
-    municipality,
-    feltIntensity,
-    buildingType,
-    comments,
-    timestamp,
-    mercalliEstimated,
-    earthquakeId,
-  });
-  res.json({ report });
-});
+registerApiRoutes(app, db);
 
 // Earthquake watcher: polls USGS every 30s and pushes to qualifying subscribers.
 setInterval(() => {

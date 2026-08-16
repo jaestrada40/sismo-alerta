@@ -35,7 +35,7 @@ export async function subscribeToPush(
   });
 
   const json = subscription.toJSON();
-  await fetch('/api/push/subscribe', {
+  const res = await fetch('/api/push/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -47,6 +47,9 @@ export async function subscribeToPush(
       userLng,
     }),
   });
+  if (!res.ok) {
+    throw new Error('No se pudo registrar la suscripción de notificaciones en el servidor');
+  }
 }
 
 export async function unsubscribeFromPush(): Promise<void> {
@@ -55,10 +58,13 @@ export async function unsubscribeFromPush(): Promise<void> {
   const subscription = await registration?.pushManager.getSubscription();
   if (!subscription) return;
 
-  await fetch('/api/push/unsubscribe', {
+  const res = await fetch('/api/push/unsubscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ endpoint: subscription.endpoint }),
   });
+  if (!res.ok) {
+    throw new Error('No se pudo cancelar la suscripción de notificaciones en el servidor');
+  }
   await subscription.unsubscribe();
 }

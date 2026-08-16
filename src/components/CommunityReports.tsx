@@ -20,9 +20,11 @@ export const CommunityReports: React.FC<CommunityReportsProps> = ({
   const [buildingType, setBuildingType] = useState<CommunityReport['buildingType']>('Casa de 1 nivel');
   const [comments, setComments] = useState<string>('');
   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
 
     let mercalli = 'IV';
     if (feltIntensity === 'No sentido') mercalli = 'I';
@@ -32,20 +34,24 @@ export const CommunityReports: React.FC<CommunityReportsProps> = ({
     if (feltIntensity === 'Fuerte') mercalli = 'VI';
     if (feltIntensity === 'Muy Fuerte / Pánico') mercalli = 'VIII';
 
-    const newReport = await submitReport({
-      department: selectedDept,
-      municipality: municipality || 'Cabecera',
-      feltIntensity,
-      buildingType,
-      comments: comments.trim() || undefined,
-      timestamp: Date.now(),
-      mercalliEstimated: `Mercalli ${mercalli}`,
-    });
+    try {
+      const newReport = await submitReport({
+        department: selectedDept,
+        municipality: municipality || 'Cabecera',
+        feltIntensity,
+        buildingType,
+        comments: comments.trim() || undefined,
+        timestamp: Date.now(),
+        mercalliEstimated: `Mercalli ${mercalli}`,
+      });
 
-    onReportAdded(newReport);
-    setSubmitted(true);
-    setComments('');
-    setTimeout(() => setSubmitted(false), 4000);
+      onReportAdded(newReport);
+      setSubmitted(true);
+      setComments('');
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'No se pudo enviar el reporte. Intenta de nuevo.');
+    }
   };
 
   const getIntensityBadge = (intensity: CommunityReport['feltIntensity']) => {
@@ -192,6 +198,10 @@ export const CommunityReports: React.FC<CommunityReportsProps> = ({
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-900 shadow-sm"
                 />
               </div>
+
+              {errorMessage && (
+                <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">{errorMessage}</p>
+              )}
 
               <button
                 id="btn-submit-community-report"

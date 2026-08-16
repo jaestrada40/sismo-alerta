@@ -8,6 +8,7 @@ import { BulletinGeneratorModal } from './components/BulletinGeneratorModal';
 import { CommunityReports } from './components/CommunityReports';
 import { EmergencyGuide } from './components/EmergencyGuide';
 import { SeismicAiAdvisor } from './components/SeismicAiAdvisor';
+import { NotificationSettings } from './components/NotificationSettings';
 import { fetchLiveGuatemalaEarthquakes, FALLBACK_GUATEMALA_EARTHQUAKES } from './services/usgsService';
 import { fetchReports } from './services/reportsService';
 import { Earthquake, SeismicSimulationConfig, SimulationResult, CommunityReport } from './types';
@@ -362,7 +363,7 @@ export default function App() {
             </div>
 
             {/* Earthquakes Feed Column */}
-            <div className="lg:col-span-5">
+            <div className="lg:col-span-5 space-y-4">
               <EarthquakeFeed
                 earthquakes={earthquakes}
                 selectedEarthquake={selectedEarthquake}
@@ -374,6 +375,8 @@ export default function App() {
                 minMagFilter={minMagFilter}
                 setMinMagFilter={setMinMagFilter}
               />
+
+              <NotificationSettings />
             </div>
           </div>
         )}

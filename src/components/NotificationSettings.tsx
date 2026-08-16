@@ -1,5 +1,5 @@
 // src/components/NotificationSettings.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, BellOff } from 'lucide-react';
 import { subscribeToPush, unsubscribeFromPush } from '../services/pushSubscriptionService';
 
@@ -9,6 +9,27 @@ export const NotificationSettings: React.FC = () => {
   const [radiusKm, setRadiusKm] = useState<number>(50);
   const [status, setStatus] = useState<'idle' | 'subscribed' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  // On mount, check whether the browser already has an active push subscription
+  // so a returning subscribed user doesn't see a misleading "Activar" state.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (!('serviceWorker' in navigator)) return;
+        const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+        const subscription = await registration?.pushManager.getSubscription();
+        if (!cancelled && subscription) {
+          setStatus('subscribed');
+        }
+      } catch {
+        // Ignore — leave status as 'idle' if detection fails.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubscribe = async () => {
     setErrorMessage('');

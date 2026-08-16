@@ -22,6 +22,23 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   // Only cache-first the app shell and static GET requests; never intercept /api/ calls.
   if (event.request.method !== 'GET' || url.pathname.startsWith('/api/')) return;
+  // Never intercept cross-origin requests (map tiles, Leaflet CSS, etc.) — only cache same-origin assets.
+  if (url.origin !== self.location.origin) return;
+
+  // Navigation requests (the app shell) use network-first so redeployed builds are visible,
+  // falling back to the cached shell when offline.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(STATIC_CACHE).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
