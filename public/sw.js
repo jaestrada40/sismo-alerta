@@ -59,7 +59,7 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'Alerta Sísmica Guatemala';
   const options = {
     body: data.body || 'Nuevo sismo detectado.',
-    icon: '/assets/icon.svg',
+    icon: '/assets/icon-192.png',
     data: { url: data.url || '/' },
   };
   event.waitUntil(self.registration.showNotification(title, options));

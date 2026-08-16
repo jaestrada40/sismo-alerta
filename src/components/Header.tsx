@@ -57,9 +57,11 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between min-h-16 sm:h-20 py-2 sm:py-0 gap-2">
           {/* Logo & National System Title */}
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-red-600 rounded-lg flex items-center justify-center font-black text-lg sm:text-xl text-white shadow-md flex-shrink-0">
-              !
-            </div>
+            <img
+              src="/assets/icon-64.png"
+              alt="Sismo GT"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg shadow-md flex-shrink-0 bg-white/90 p-1"
+            />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <h1 className="text-sm sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 uppercase whitespace-nowrap">
