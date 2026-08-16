@@ -53,16 +53,16 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-blue-900 text-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between min-h-16 sm:h-20 py-2 sm:py-0 gap-2">
           {/* Logo & National System Title */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center font-black text-xl text-white shadow-md flex-shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-red-600 rounded-lg flex items-center justify-center font-black text-lg sm:text-xl text-white shadow-md flex-shrink-0">
               !
             </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 uppercase">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h1 className="text-sm sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 uppercase whitespace-nowrap">
                   SISMO ALERT <span className="font-light opacity-90 text-blue-200">GUATEMALA</span>
                 </h1>
                 <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-800 text-blue-200 border border-blue-700">
@@ -70,20 +70,20 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <div className="flex items-center space-x-2 text-xs text-blue-200">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse inline-block"></span>
-                  <span className="uppercase text-[11px] font-bold tracking-wide">
+                <span className="flex items-center gap-1.5 font-medium whitespace-nowrap">
+                  <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full animate-pulse inline-block flex-shrink-0"></span>
+                  <span className="uppercase text-[10px] sm:text-[11px] font-bold tracking-wide">
                     {isLive ? 'SISTEMA ACTIVO' : 'MODO SEGURO'}
                   </span>
                 </span>
-                <span className="opacity-60">•</span>
-                <span className="text-[11px] opacity-90">Red Nacional de Monitoreo</span>
+                <span className="hidden sm:inline opacity-60">•</span>
+                <span className="hidden sm:inline text-[11px] opacity-90">Red Nacional de Monitoreo</span>
               </div>
             </div>
           </div>
 
           {/* Right Side: Status, Time, Quick Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-1.5 sm:space-x-4 flex-shrink-0">
             {/* Clock */}
             <div className="hidden md:block text-xs font-mono text-blue-100 font-semibold border-l border-white/20 pl-4 py-1">
               {currentTime}
