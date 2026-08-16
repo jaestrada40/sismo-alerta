@@ -430,7 +430,7 @@ export default function App() {
               CONRED • INSIVUMEH • SISTEMA NACIONAL DE ALERTA TEMPRANA
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Monitoreo y alerta sísmica en la República de Guatemala. Basado en sensores USGS e INSIVUMEH.
+              Monitoreo y alerta sísmica en la República de Guatemala. Basado en datos de USGS.
             </p>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold text-slate-300">

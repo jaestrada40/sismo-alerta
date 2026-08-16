@@ -57,7 +57,7 @@ export const EarthquakeFeed: React.FC<EarthquakeFeedProps> = ({
         <div>
           <h2 className="font-bold text-slate-700 uppercase text-xs tracking-wider flex items-center gap-2">
             <Activity className="w-4 h-4 text-blue-900" />
-            Últimos Eventos (INSIVUMEH / USGS)
+            Últimos Eventos (USGS)
           </h2>
           <p className="text-[11px] text-slate-500 mt-0.5">
             {filteredEarthquakes.length} sismos registrados en territorio guatemalteco
@@ -226,7 +226,7 @@ export const EarthquakeFeed: React.FC<EarthquakeFeedProps> = ({
 
       {/* Footer info strip */}
       <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-        <span>Fuente: INSIVUMEH / USGS</span>
+        <span>Fuente: USGS</span>
         <button
           onClick={() => setMinMagFilter(2.5)}
           className="text-blue-900 font-bold hover:underline"

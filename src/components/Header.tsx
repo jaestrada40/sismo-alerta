@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
                   SISMO ALERT <span className="font-light opacity-90 text-blue-200">GUATEMALA</span>
                 </h1>
                 <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-800 text-blue-200 border border-blue-700">
-                  INSIVUMEH / USGS
+                  USGS
                 </span>
               </div>
               <div className="flex items-center space-x-2 text-xs text-blue-200">
