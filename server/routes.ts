@@ -4,6 +4,8 @@ import Database from 'better-sqlite3';
 import {
   insertSubscription,
   deleteSubscriptionByEndpoint,
+  insertEmailSubscription,
+  deleteEmailSubscriptionByEmail,
   insertReport,
   getAllReports,
 } from './db';
@@ -11,6 +13,9 @@ import {
 // Comments longer than this are rejected with a 400 (rather than silently truncated),
 // so the user gets clear feedback instead of a surprising data loss.
 const MAX_COMMENTS_LENGTH = 1000;
+
+// Deliberately simple format check — good enough to catch typos, not a full RFC 5322 validator.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function registerApiRoutes(app: Express, db: Database.Database): void {
   app.get('/api/push/vapid-public-key', (req, res) => {
@@ -46,6 +51,37 @@ export function registerApiRoutes(app: Express, db: Database.Database): void {
     const { endpoint } = req.body;
     if (!endpoint) return res.status(400).json({ error: 'endpoint requerido' });
     deleteSubscriptionByEndpoint(db, endpoint);
+    res.json({ status: 'unsubscribed' });
+  });
+
+  app.post('/api/email/subscribe', (req, res) => {
+    const { email, minMagnitude, nearbyRadiusKm, userLat, userLng } = req.body;
+    if (
+      typeof email !== 'string' ||
+      !EMAIL_PATTERN.test(email) ||
+      typeof minMagnitude !== 'number' ||
+      !Number.isFinite(minMagnitude) ||
+      minMagnitude < 0 ||
+      minMagnitude > 10
+    ) {
+      return res.status(400).json({ error: 'Suscripción de correo inválida' });
+    }
+    insertEmailSubscription(db, {
+      email,
+      min_magnitude: minMagnitude,
+      nearby_radius_km: nearbyRadiusKm ?? null,
+      user_lat: userLat ?? null,
+      user_lng: userLng ?? null,
+    });
+    res.json({ status: 'subscribed' });
+  });
+
+  app.post('/api/email/unsubscribe', (req, res) => {
+    const { email } = req.body;
+    if (typeof email !== 'string' || !EMAIL_PATTERN.test(email)) {
+      return res.status(400).json({ error: 'correo requerido' });
+    }
+    deleteEmailSubscriptionByEmail(db, email);
     res.json({ status: 'unsubscribed' });
   });
 

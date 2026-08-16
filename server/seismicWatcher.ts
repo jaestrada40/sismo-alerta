@@ -1,13 +1,20 @@
 import type { Database } from 'better-sqlite3';
 import type { Earthquake } from '../src/types';
-import type { PushSubscriptionRow } from './db';
+import type { PushSubscriptionRow, EmailSubscriptionRow } from './db';
 import { calculateDistanceKm } from '../src/utils/seismicCalculations';
 
-export function selectNotifications(
+interface MagnitudeRadiusSubscription {
+  min_magnitude: number;
+  nearby_radius_km: number | null;
+  user_lat: number | null;
+  user_lng: number | null;
+}
+
+export function selectNotifications<S extends MagnitudeRadiusSubscription>(
   newQuakes: Earthquake[],
-  subscriptions: PushSubscriptionRow[]
-): Array<{ subscription: PushSubscriptionRow; earthquake: Earthquake }> {
-  const matches: Array<{ subscription: PushSubscriptionRow; earthquake: Earthquake }> = [];
+  subscriptions: S[]
+): Array<{ subscription: S; earthquake: Earthquake }> {
+  const matches: Array<{ subscription: S; earthquake: Earthquake }> = [];
 
   for (const earthquake of newQuakes) {
     for (const subscription of subscriptions) {
@@ -44,6 +51,8 @@ interface PollDeps {
   hasSeenEarthquake: (db: Database, usgsId: string) => boolean;
   markEarthquakeSeen: (db: Database, usgsId: string) => void;
   getAllSubscriptions: (db: Database) => PushSubscriptionRow[];
+  sendEmail?: (sub: EmailSubscriptionRow, eq: Earthquake) => Promise<void>;
+  getAllEmailSubscriptions?: (db: Database) => EmailSubscriptionRow[];
 }
 
 export async function pollAndNotify(deps: PollDeps): Promise<void> {
@@ -66,6 +75,19 @@ export async function pollAndNotify(deps: PollDeps): Promise<void> {
       await deps.sendPush(subscription, earthquake);
     } catch (err) {
       console.warn('seismicWatcher: fallo enviando push a suscriptor:', err);
+    }
+  }
+
+  if (deps.sendEmail && deps.getAllEmailSubscriptions) {
+    const emailSubscriptions = deps.getAllEmailSubscriptions(deps.db);
+    const emailNotifications = selectNotifications(newQuakes, emailSubscriptions);
+
+    for (const { subscription, earthquake } of emailNotifications) {
+      try {
+        await deps.sendEmail(subscription, earthquake);
+      } catch (err) {
+        console.warn('seismicWatcher: fallo enviando correo a suscriptor:', err);
+      }
     }
   }
 

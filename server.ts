@@ -11,11 +11,13 @@ import {
   hasSeenEarthquake,
   markEarthquakeSeen,
   getAllSubscriptions,
+  getAllEmailSubscriptions,
 } from './server/db';
 import { registerApiRoutes } from './server/routes';
 import { pollAndNotify } from './server/seismicWatcher';
 import { fetchLatestGuatemalaEarthquakes } from './server/usgsServerFetch';
 import { configurePushService, sendEarthquakePush } from './server/pushService';
+import { configureEmailService, sendEarthquakeEmail, isEmailServiceConfigured } from './server/emailService';
 
 const app = express();
 const PORT = 3000;
@@ -28,9 +30,20 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   configurePushService(process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
 }
 
+if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  configureEmailService({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: process.env.SMTP_SECURE !== 'false',
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+    from: process.env.SMTP_FROM,
+  });
+}
+
 registerApiRoutes(app, db);
 
-// Earthquake watcher: polls USGS every 30s and pushes to qualifying subscribers.
+// Earthquake watcher: polls USGS every 30s and notifies qualifying subscribers via push and/or email.
 setInterval(() => {
   pollAndNotify({
     db,
@@ -39,6 +52,12 @@ setInterval(() => {
     hasSeenEarthquake,
     markEarthquakeSeen,
     getAllSubscriptions,
+    ...(isEmailServiceConfigured()
+      ? {
+          sendEmail: (sub, eq) => sendEarthquakeEmail(sub.email, eq),
+          getAllEmailSubscriptions,
+        }
+      : {}),
   });
 }, 30000);
 

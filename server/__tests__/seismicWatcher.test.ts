@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { selectNotifications, pollAndNotify } from '../seismicWatcher';
 import type { Earthquake } from '../../src/types';
-import type { PushSubscriptionRow } from '../db';
+import type { PushSubscriptionRow, EmailSubscriptionRow } from '../db';
 
 function makeQuake(overrides: Partial<Earthquake> = {}): Earthquake {
   return {
@@ -82,6 +82,19 @@ describe('selectNotifications', () => {
     expect(result).toHaveLength(3); // q1->subHigh, q1->subLow, q2->subLow
   });
 });
+
+function makeEmailSub(overrides: Partial<EmailSubscriptionRow> = {}): EmailSubscriptionRow {
+  return {
+    id: 1,
+    email: 'user@example.com',
+    min_magnitude: 4.0,
+    nearby_radius_km: null,
+    user_lat: null,
+    user_lng: null,
+    created_at: Date.now(),
+    ...overrides,
+  };
+}
 
 describe('pollAndNotify', () => {
   it('marks new quakes as seen and sends push only to matching subscribers, skipping already-seen quakes', async () => {
@@ -176,5 +189,89 @@ describe('pollAndNotify', () => {
 
     expect(sendPush).toHaveBeenCalledWith(sub, quake);
     expect(markEarthquakeSeen).toHaveBeenCalledWith(db, 'eq_failed_push');
+  });
+
+  it('sends email to matching email subscribers when email deps are provided', async () => {
+    const quake = makeQuake({ id: 'eq_email', magnitude: 5.0 });
+    const pushSub = makeSub({ min_magnitude: 4.0 });
+    const emailSub = makeEmailSub({ min_magnitude: 4.0 });
+
+    const db = {} as any;
+    const fetchQuakes = vi.fn().mockResolvedValue([quake]);
+    const sendPush = vi.fn().mockResolvedValue(undefined);
+    const sendEmail = vi.fn().mockResolvedValue(undefined);
+    const hasSeenEarthquake = vi.fn().mockReturnValue(false);
+    const markEarthquakeSeen = vi.fn();
+    const getAllSubscriptions = vi.fn().mockReturnValue([pushSub]);
+    const getAllEmailSubscriptions = vi.fn().mockReturnValue([emailSub]);
+
+    await pollAndNotify({
+      db,
+      fetchQuakes,
+      sendPush,
+      sendEmail,
+      hasSeenEarthquake,
+      markEarthquakeSeen,
+      getAllSubscriptions,
+      getAllEmailSubscriptions,
+    });
+
+    expect(sendPush).toHaveBeenCalledWith(pushSub, quake);
+    expect(sendEmail).toHaveBeenCalledWith(emailSub, quake);
+    expect(markEarthquakeSeen).toHaveBeenCalledWith(db, 'eq_email');
+  });
+
+  it('skips email notifications entirely when email deps are not provided', async () => {
+    const quake = makeQuake({ id: 'eq_no_email', magnitude: 5.0 });
+    const sub = makeSub({ min_magnitude: 4.0 });
+
+    const db = {} as any;
+    const fetchQuakes = vi.fn().mockResolvedValue([quake]);
+    const sendPush = vi.fn().mockResolvedValue(undefined);
+    const hasSeenEarthquake = vi.fn().mockReturnValue(false);
+    const markEarthquakeSeen = vi.fn();
+    const getAllSubscriptions = vi.fn().mockReturnValue([sub]);
+
+    await pollAndNotify({
+      db,
+      fetchQuakes,
+      sendPush,
+      hasSeenEarthquake,
+      markEarthquakeSeen,
+      getAllSubscriptions,
+    });
+
+    expect(sendPush).toHaveBeenCalledWith(sub, quake);
+    expect(markEarthquakeSeen).toHaveBeenCalledWith(db, 'eq_no_email');
+  });
+
+  it('swallows sendEmail errors without throwing, still marks quake as seen', async () => {
+    const quake = makeQuake({ id: 'eq_failed_email', magnitude: 5.0 });
+    const emailSub = makeEmailSub({ min_magnitude: 4.0 });
+
+    const db = {} as any;
+    const fetchQuakes = vi.fn().mockResolvedValue([quake]);
+    const sendPush = vi.fn().mockResolvedValue(undefined);
+    const sendEmail = vi.fn().mockRejectedValue(new Error('SMTP down'));
+    const hasSeenEarthquake = vi.fn().mockReturnValue(false);
+    const markEarthquakeSeen = vi.fn();
+    const getAllSubscriptions = vi.fn().mockReturnValue([]);
+    const getAllEmailSubscriptions = vi.fn().mockReturnValue([emailSub]);
+
+    await expect(
+      pollAndNotify({
+        db,
+        fetchQuakes,
+        sendPush,
+        sendEmail,
+        hasSeenEarthquake,
+        markEarthquakeSeen,
+        getAllSubscriptions,
+        getAllEmailSubscriptions,
+      })
+    ).resolves.toBeUndefined();
+
+    expect(sendEmail).toHaveBeenCalledWith(emailSub, quake);
+    expect(markEarthquakeSeen).toHaveBeenCalledWith(db, 'eq_failed_email');
   });
 });

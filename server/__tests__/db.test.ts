@@ -4,6 +4,9 @@ import {
   insertSubscription,
   deleteSubscriptionByEndpoint,
   getAllSubscriptions,
+  insertEmailSubscription,
+  deleteEmailSubscriptionByEmail,
+  getAllEmailSubscriptions,
   hasSeenEarthquake,
   markEarthquakeSeen,
   insertReport,
@@ -71,6 +74,54 @@ describe('db', () => {
     });
     deleteSubscriptionByEndpoint(db, 'https://push.example/abc');
     expect(getAllSubscriptions(db)).toHaveLength(0);
+  });
+
+  it('inserts and lists email subscriptions', () => {
+    insertEmailSubscription(db, {
+      email: 'user@example.com',
+      min_magnitude: 4.5,
+      nearby_radius_km: null,
+      user_lat: null,
+      user_lng: null,
+    });
+
+    const rows = getAllEmailSubscriptions(db);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].email).toBe('user@example.com');
+    expect(rows[0].min_magnitude).toBe(4.5);
+  });
+
+  it('upserts email subscriptions by email instead of duplicating', () => {
+    insertEmailSubscription(db, {
+      email: 'user@example.com',
+      min_magnitude: 4.5,
+      nearby_radius_km: null,
+      user_lat: null,
+      user_lng: null,
+    });
+    insertEmailSubscription(db, {
+      email: 'user@example.com',
+      min_magnitude: 3.0,
+      nearby_radius_km: 30,
+      user_lat: 14.6,
+      user_lng: -90.5,
+    });
+
+    const rows = getAllEmailSubscriptions(db);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].min_magnitude).toBe(3.0);
+  });
+
+  it('deletes an email subscription by email', () => {
+    insertEmailSubscription(db, {
+      email: 'user@example.com',
+      min_magnitude: 4.5,
+      nearby_radius_km: null,
+      user_lat: null,
+      user_lng: null,
+    });
+    deleteEmailSubscriptionByEmail(db, 'user@example.com');
+    expect(getAllEmailSubscriptions(db)).toHaveLength(0);
   });
 
   it('tracks seen earthquakes', () => {

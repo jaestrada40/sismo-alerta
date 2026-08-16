@@ -12,6 +12,16 @@ export interface PushSubscriptionRow {
   created_at: number;
 }
 
+export interface EmailSubscriptionRow {
+  id: number;
+  email: string;
+  min_magnitude: number;
+  nearby_radius_km: number | null;
+  user_lat: number | null;
+  user_lng: number | null;
+  created_at: number;
+}
+
 export interface CommunityReportRow {
   id: number;
   earthquakeId?: string;
@@ -34,6 +44,16 @@ export function initDb(path: string): Database.Database {
       endpoint TEXT UNIQUE NOT NULL,
       p256dh TEXT NOT NULL,
       auth TEXT NOT NULL,
+      min_magnitude REAL NOT NULL,
+      nearby_radius_km REAL,
+      user_lat REAL,
+      user_lng REAL,
+      created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
+    );
+
+    CREATE TABLE IF NOT EXISTS email_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
       min_magnitude REAL NOT NULL,
       nearby_radius_km REAL,
       user_lat REAL,
@@ -85,6 +105,29 @@ export function deleteSubscriptionByEndpoint(db: Database.Database, endpoint: st
 
 export function getAllSubscriptions(db: Database.Database): PushSubscriptionRow[] {
   return db.prepare(`SELECT * FROM push_subscriptions`).all() as PushSubscriptionRow[];
+}
+
+export function insertEmailSubscription(
+  db: Database.Database,
+  sub: Omit<EmailSubscriptionRow, 'id' | 'created_at'>
+): void {
+  db.prepare(
+    `INSERT INTO email_subscriptions (email, min_magnitude, nearby_radius_km, user_lat, user_lng)
+     VALUES (@email, @min_magnitude, @nearby_radius_km, @user_lat, @user_lng)
+     ON CONFLICT(email) DO UPDATE SET
+       min_magnitude = excluded.min_magnitude,
+       nearby_radius_km = excluded.nearby_radius_km,
+       user_lat = excluded.user_lat,
+       user_lng = excluded.user_lng`
+  ).run(sub);
+}
+
+export function deleteEmailSubscriptionByEmail(db: Database.Database, email: string): void {
+  db.prepare(`DELETE FROM email_subscriptions WHERE email = ?`).run(email);
+}
+
+export function getAllEmailSubscriptions(db: Database.Database): EmailSubscriptionRow[] {
+  return db.prepare(`SELECT * FROM email_subscriptions`).all() as EmailSubscriptionRow[];
 }
 
 export function hasSeenEarthquake(db: Database.Database, usgsId: string): boolean {
