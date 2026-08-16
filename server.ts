@@ -27,18 +27,26 @@ app.use(express.json());
 const db = initDb(process.env.DB_PATH || 'data.db');
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-  configurePushService(process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+  try {
+    configurePushService(process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+  } catch (err: any) {
+    console.warn('No se pudo configurar el servicio de push (claves VAPID inválidas), push desactivado:', err.message);
+  }
 }
 
 if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-  configureEmailService({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 465,
-    secure: process.env.SMTP_SECURE !== 'false',
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-    from: process.env.SMTP_FROM,
-  });
+  try {
+    configureEmailService({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 465,
+      secure: process.env.SMTP_SECURE !== 'false',
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+      from: process.env.SMTP_FROM,
+    });
+  } catch (err: any) {
+    console.warn('No se pudo configurar el servicio de correo (credenciales SMTP inválidas), correo desactivado:', err.message);
+  }
 }
 
 registerApiRoutes(app, db);
