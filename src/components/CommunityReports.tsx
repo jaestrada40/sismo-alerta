@@ -3,15 +3,16 @@ import { CommunityReport } from '../types';
 import { GUATEMALA_DEPARTMENTS } from '../data/guatemalaData';
 import { Users, Send, CheckCircle2, MessageSquare, Building2, MapPin, Sparkles } from 'lucide-react';
 import { formatGuatemalaTime, getRelativeTimeSpanish } from '../utils/seismicCalculations';
+import { submitReport } from '../services/reportsService';
 
 interface CommunityReportsProps {
   reports: CommunityReport[];
-  onAddReport: (report: CommunityReport) => void;
+  onReportAdded: (report: CommunityReport) => void;
 }
 
 export const CommunityReports: React.FC<CommunityReportsProps> = ({
   reports,
-  onAddReport
+  onReportAdded
 }) => {
   const [selectedDept, setSelectedDept] = useState<string>('Guatemala (Capital)');
   const [municipality, setMunicipality] = useState<string>('Zona 10');
@@ -20,7 +21,7 @@ export const CommunityReports: React.FC<CommunityReportsProps> = ({
   const [comments, setComments] = useState<string>('');
   const [submitted, setSubmitted] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     let mercalli = 'IV';
@@ -31,18 +32,17 @@ export const CommunityReports: React.FC<CommunityReportsProps> = ({
     if (feltIntensity === 'Fuerte') mercalli = 'VI';
     if (feltIntensity === 'Muy Fuerte / Pánico') mercalli = 'VIII';
 
-    const newReport: CommunityReport = {
-      id: `rep_${Date.now()}`,
+    const newReport = await submitReport({
       department: selectedDept,
       municipality: municipality || 'Cabecera',
       feltIntensity,
       buildingType,
       comments: comments.trim() || undefined,
       timestamp: Date.now(),
-      mercalliEstimated: `Mercalli ${mercalli}`
-    };
+      mercalliEstimated: `Mercalli ${mercalli}`,
+    });
 
-    onAddReport(newReport);
+    onReportAdded(newReport);
     setSubmitted(true);
     setComments('');
     setTimeout(() => setSubmitted(false), 4000);

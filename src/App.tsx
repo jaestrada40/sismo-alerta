@@ -9,6 +9,7 @@ import { CommunityReports } from './components/CommunityReports';
 import { EmergencyGuide } from './components/EmergencyGuide';
 import { SeismicAiAdvisor } from './components/SeismicAiAdvisor';
 import { fetchLiveGuatemalaEarthquakes, FALLBACK_GUATEMALA_EARTHQUAKES } from './services/usgsService';
+import { fetchReports } from './services/reportsService';
 import { Earthquake, SeismicSimulationConfig, SimulationResult, CommunityReport } from './types';
 import { calculateSimulationResult } from './utils/seismicCalculations';
 import { Map, Sliders, Users, ShieldCheck, Bot, Activity, AlertTriangle, Radio } from 'lucide-react';
@@ -50,39 +51,8 @@ export default function App() {
   // Bulletin Modal State
   const [bulletinEarthquake, setBulletinEarthquake] = useState<Earthquake | null>(null);
 
-  // Community reports state with default records
-  const [communityReports, setCommunityReports] = useState<CommunityReport[]>([
-    {
-      id: 'cr_1',
-      department: 'Escuintla',
-      municipality: 'Puerto San José',
-      feltIntensity: 'Fuerte',
-      buildingType: 'Casa de 1 nivel',
-      comments: 'Movimiento oscilatorio fuerte en la costa, se escuchó retumbo en el mar.',
-      timestamp: Date.now() - 1000 * 60 * 25,
-      mercalliEstimated: 'Mercalli VI'
-    },
-    {
-      id: 'cr_2',
-      department: 'Guatemala (Capital)',
-      municipality: 'Zona 14',
-      feltIntensity: 'Moderado',
-      buildingType: 'Edificio de apartamentos / oficinas',
-      comments: 'En piso 7 se sintió balanceo claro de lámparas durante unos 15 segundos.',
-      timestamp: Date.now() - 1000 * 60 * 40,
-      mercalliEstimated: 'Mercalli IV'
-    },
-    {
-      id: 'cr_3',
-      department: 'Sacatepéquez',
-      municipality: 'Antigua Guatemala',
-      feltIntensity: 'Leve',
-      buildingType: 'Casa de 1 nivel',
-      comments: 'Vibración suave de ventanas y copas de vidrio.',
-      timestamp: Date.now() - 1000 * 60 * 75,
-      mercalliEstimated: 'Mercalli III'
-    }
-  ]);
+  // Community reports state, fetched from the backend
+  const [communityReports, setCommunityReports] = useState<CommunityReport[]>([]);
 
   // Fetch Live Earthquakes
   const loadEarthquakes = useCallback(async () => {
@@ -100,6 +70,11 @@ export default function App() {
     const interval = setInterval(loadEarthquakes, 45000);
     return () => clearInterval(interval);
   }, [loadEarthquakes]);
+
+  // Fetch community reports on mount
+  useEffect(() => {
+    fetchReports().then(setCommunityReports).catch(() => setCommunityReports([]));
+  }, []);
 
   // Request browser geolocation once on mount if available
   useEffect(() => {
@@ -157,7 +132,7 @@ export default function App() {
     setActiveTab('map');
   };
 
-  const handleAddCommunityReport = (rep: CommunityReport) => {
+  const handleReportAdded = (rep: CommunityReport) => {
     setCommunityReports((prev) => [rep, ...prev]);
   };
 
@@ -405,7 +380,7 @@ export default function App() {
           <div>
             <CommunityReports
               reports={communityReports}
-              onAddReport={handleAddCommunityReport}
+              onReportAdded={handleReportAdded}
             />
           </div>
         )}
