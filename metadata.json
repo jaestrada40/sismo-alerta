@@ -1,0 +1,6 @@
+{
+  "name": "Alerta Sísmica Guatemala",
+  "description": "Sistema de monitoreo, detección, simulación y generación de alertas tempranas de sismos y terremotos para Guatemala e INSIVUMEH/CONRED.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

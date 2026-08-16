@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/* Custom Leaflet Popups & Tooltips Styling for Professional Polish */
+.leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px !important;
+  line-height: 1.4 !important;
+  color: #0f172a !important;
+}
+
+.seismic-tooltip {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid #dc2626 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2) !important;
+  padding: 6px 10px !important;
+  font-family: inherit !important;
+}
+
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes bounceShort {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-short {
+  animation: bounceShort 2s infinite ease-in-out;
+}
+
