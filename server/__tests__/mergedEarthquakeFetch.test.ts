@@ -90,7 +90,7 @@ describe('fetchAllGuatemalaEarthquakes', () => {
     expect(result.map((e) => e.id).sort()).toEqual(['emsc1', 'insivumeh_1', 'us1']);
   });
 
-  it('deduplicates the same physical event reported by USGS and EMSC', async () => {
+  it('deduplicates the same physical event reported by USGS and EMSC, keeping EMSC (higher priority)', async () => {
     const usgsQuake = makeQuake({ id: 'us1', time: 1700000000000, latitude: 14.3, longitude: -90.7 });
     const emscQuake = makeQuake({ id: 'emsc1', time: 1700000000000 + 5000, latitude: 14.32, longitude: -90.71 });
 
@@ -101,7 +101,22 @@ describe('fetchAllGuatemalaEarthquakes', () => {
     });
 
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('us1');
+    expect(result[0].id).toBe('emsc1');
+  });
+
+  it('follows EMSC > INSIVUMEH > USGS priority when all three report the same event', async () => {
+    const usgsQuake = makeQuake({ id: 'us1', magnitude: 4.0, time: 1700000000000, latitude: 14.3, longitude: -90.7 });
+    const emscQuake = makeQuake({ id: 'emsc1', magnitude: 4.2, time: 1700000000000 + 2000, latitude: 14.31, longitude: -90.71 });
+    const insivumehQuake = makeQuake({ id: 'insivumeh_1', magnitude: 4.1, time: 1700000000000 + 4000, latitude: 14.29, longitude: -90.69 });
+
+    const result = await fetchAllGuatemalaEarthquakes({
+      fetchUsgs: vi.fn().mockResolvedValue([usgsQuake]),
+      fetchEmsc: vi.fn().mockResolvedValue([emscQuake]),
+      fetchInsivumeh: vi.fn().mockResolvedValue(insivumehQuake),
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('emsc1');
   });
 
   it('still returns EMSC and INSIVUMEH results when USGS fails', async () => {

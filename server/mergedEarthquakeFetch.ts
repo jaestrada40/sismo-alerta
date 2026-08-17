@@ -2,13 +2,21 @@
 //
 // Combines three independent sources so the watcher notifies on whichever
 // reports an event first, and a single source's outage or bad data never blocks
-// detection entirely:
-//   - USGS: broad, reliable, official API (CORS-enabled, also used by the frontend)
-//   - EMSC: aggregates ~100+ regional networks; measured ~169s faster than USGS
-//     for at least one real event, no CORS (server-side only)
-//   - INSIVUMEH: local Guatemalan sensors via best-effort scraping (see
-//     insivumehScraper.ts) — catches smaller/nearer events the international
-//     networks miss or report much later
+// detection entirely. Fetch order is also priority order: when two sources
+// report the same physical event with slightly different values (magnitude,
+// place), the earlier source in this list wins — mergeUnique keeps whichever
+// version was added to the combined list first.
+//
+//   1. EMSC: aggregates ~100+ regional networks; measured ~169s faster than
+//      USGS for a real event, and has caught several regional quakes (M3-4.4
+//      off Chiapas/El Salvador/Honduras) that USGS never reported at all.
+//      No CORS (server-side only). Primary source given this track record.
+//   2. INSIVUMEH: local Guatemalan sensors via best-effort scraping (see
+//      insivumehScraper.ts) — catches smaller/nearer events the international
+//      networks miss or report much later.
+//   3. USGS: broad, official API (CORS-enabled, also used by the frontend
+//      feed directly) — reliable fallback, but has proven slower and less
+//      complete than EMSC for this region.
 //
 // Each source's failure is caught independently; the merge proceeds with
 // whatever succeeded. Events are deduplicated across sources by time+location
@@ -60,14 +68,7 @@ export async function fetchAllGuatemalaEarthquakes(
   let combined: Earthquake[] = [];
 
   try {
-    combined = await deps.fetchUsgs();
-  } catch (err: any) {
-    console.warn('mergedEarthquakeFetch: fallo consultando USGS:', err.message);
-  }
-
-  try {
-    const emscQuakes = await deps.fetchEmsc();
-    combined = mergeUnique(combined, emscQuakes);
+    combined = await deps.fetchEmsc();
   } catch (err: any) {
     console.warn('mergedEarthquakeFetch: fallo consultando EMSC:', err.message);
   }
@@ -77,6 +78,13 @@ export async function fetchAllGuatemalaEarthquakes(
     combined = mergeUnique(combined, [insivumehQuake]);
   } catch (err: any) {
     console.warn('mergedEarthquakeFetch: fallo consultando INSIVUMEH:', err.message);
+  }
+
+  try {
+    const usgsQuakes = await deps.fetchUsgs();
+    combined = mergeUnique(combined, usgsQuakes);
+  } catch (err: any) {
+    console.warn('mergedEarthquakeFetch: fallo consultando USGS:', err.message);
   }
 
   return combined;
