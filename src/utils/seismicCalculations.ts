@@ -23,12 +23,19 @@ export function calculateDistanceKm(
   return Math.round(R * c * 10) / 10;
 }
 
+// Beyond this radius from a department's reference point, an epicenter is no
+// longer plausibly "in" that department — it's likely offshore or in a
+// neighboring country, and callers should say so instead of naming the
+// nearest department as if the quake happened there.
+export const DEPARTMENT_PROXIMITY_THRESHOLD_KM = 60;
+
 /**
  * Finds the closest Guatemala department to a given coordinate
  */
 export function getClosestGuatemalaDepartment(lat: number, lng: number): {
   department: string;
   distanceKm: number;
+  isWithinGuatemala: boolean;
 } {
   let closestDept = GUATEMALA_DEPARTMENTS[0].name;
   let minDistance = Infinity;
@@ -43,7 +50,8 @@ export function getClosestGuatemalaDepartment(lat: number, lng: number): {
 
   return {
     department: closestDept,
-    distanceKm: Math.round(minDistance)
+    distanceKm: Math.round(minDistance),
+    isWithinGuatemala: minDistance <= DEPARTMENT_PROXIMITY_THRESHOLD_KM
   };
 }
 

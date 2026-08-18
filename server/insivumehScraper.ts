@@ -68,7 +68,9 @@ export function insivumehEventToEarthquake(event: InsivumehEvent): Earthquake {
   return {
     id: event.id,
     magnitude: Math.round(event.magnitude * 10) / 10,
-    place: `Cerca de ${closestDept.department}`,
+    place: closestDept.isWithinGuatemala
+      ? `Cerca de ${closestDept.department}`
+      : `Fuera de Guatemala, cerca de ${closestDept.department}`,
     time: timeMs,
     updated: timeMs,
     depth: event.depthKm,
@@ -79,7 +81,7 @@ export function insivumehEventToEarthquake(event: InsivumehEvent): Earthquake {
     tsunami: 0,
     sig: Math.round(event.magnitude * 70),
     alert: event.magnitude >= 6.0 ? 'yellow' : event.magnitude >= 5.0 ? 'green' : null,
-    department: closestDept.department,
+    department: closestDept.isWithinGuatemala ? closestDept.department : 'Fuera de Guatemala',
     intensityMercalli: `${mmi.roman} - ${mmi.level}`,
     distanceToGuatemalaCityKm: distToCapital,
   };
@@ -98,4 +100,29 @@ export async function fetchLatestInsivumehEarthquake(): Promise<Earthquake> {
   const html = await response.text();
   const event = parseUltimoSismoHtml(html);
   return insivumehEventToEarthquake(event);
+}
+
+// INSIVUMEH's "ULTIMO_SISMO" page only ever shows their single most recent
+// event — if it gets replaced by a newer one between polls, the previous
+// event would otherwise vanish from our data entirely. This module-level
+// cache accumulates each distinct event seen across polls (in this server
+// process's lifetime) so it stays visible for RECENT_EVENTS_WINDOW_MS after
+// capture, same as the other sources.
+const RECENT_EVENTS_WINDOW_MS = 24 * 60 * 60 * 1000;
+const recentInsivumehEvents = new Map<string, Earthquake>();
+
+export function _resetInsivumehCacheForTests(): void {
+  recentInsivumehEvents.clear();
+}
+
+export async function fetchRecentInsivumehEarthquakes(): Promise<Earthquake[]> {
+  const latest = await fetchLatestInsivumehEarthquake();
+  recentInsivumehEvents.set(latest.id, latest);
+
+  const cutoff = Date.now() - RECENT_EVENTS_WINDOW_MS;
+  for (const [id, event] of recentInsivumehEvents) {
+    if (event.time < cutoff) recentInsivumehEvents.delete(id);
+  }
+
+  return [...recentInsivumehEvents.values()];
 }

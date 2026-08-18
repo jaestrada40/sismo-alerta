@@ -84,7 +84,7 @@ describe('fetchAllGuatemalaEarthquakes', () => {
     const result = await fetchAllGuatemalaEarthquakes({
       fetchUsgs: vi.fn().mockResolvedValue([usgsQuake]),
       fetchEmsc: vi.fn().mockResolvedValue([emscQuake]),
-      fetchInsivumeh: vi.fn().mockResolvedValue(insivumehQuake),
+      fetchInsivumeh: vi.fn().mockResolvedValue([insivumehQuake]),
     });
 
     expect(result.map((e) => e.id).sort()).toEqual(['emsc1', 'insivumeh_1', 'us1']);
@@ -112,7 +112,7 @@ describe('fetchAllGuatemalaEarthquakes', () => {
     const result = await fetchAllGuatemalaEarthquakes({
       fetchUsgs: vi.fn().mockResolvedValue([usgsQuake]),
       fetchEmsc: vi.fn().mockResolvedValue([emscQuake]),
-      fetchInsivumeh: vi.fn().mockResolvedValue(insivumehQuake),
+      fetchInsivumeh: vi.fn().mockResolvedValue([insivumehQuake]),
     });
 
     expect(result).toHaveLength(1);
@@ -126,7 +126,7 @@ describe('fetchAllGuatemalaEarthquakes', () => {
     const result = await fetchAllGuatemalaEarthquakes({
       fetchUsgs: vi.fn().mockRejectedValue(new Error('USGS down')),
       fetchEmsc: vi.fn().mockResolvedValue([emscQuake]),
-      fetchInsivumeh: vi.fn().mockResolvedValue(insivumehQuake),
+      fetchInsivumeh: vi.fn().mockResolvedValue([insivumehQuake]),
     });
 
     expect(result.map((e) => e.id).sort()).toEqual(['emsc1', 'insivumeh_1']);

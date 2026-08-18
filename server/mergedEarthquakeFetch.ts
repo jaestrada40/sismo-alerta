@@ -25,7 +25,7 @@ import type { Earthquake } from '../src/types';
 import { calculateDistanceKm } from '../src/utils/seismicCalculations';
 import { fetchLatestGuatemalaEarthquakes } from './usgsServerFetch';
 import { fetchLatestGuatemalaEarthquakesFromEmsc } from './emscFetch';
-import { fetchLatestInsivumehEarthquake } from './insivumehScraper';
+import { fetchRecentInsivumehEarthquakes } from './insivumehScraper';
 
 const SAME_EVENT_TIME_TOLERANCE_MS = 5 * 60 * 1000; // 5 minutes
 const SAME_EVENT_DISTANCE_TOLERANCE_KM = 75;
@@ -53,13 +53,13 @@ export function mergeUnique(combined: Earthquake[], candidates: Earthquake[]): E
 interface MergedFetchDeps {
   fetchUsgs: () => Promise<Earthquake[]>;
   fetchEmsc: () => Promise<Earthquake[]>;
-  fetchInsivumeh: () => Promise<Earthquake>;
+  fetchInsivumeh: () => Promise<Earthquake[]>;
 }
 
 const defaultDeps: MergedFetchDeps = {
   fetchUsgs: fetchLatestGuatemalaEarthquakes,
   fetchEmsc: fetchLatestGuatemalaEarthquakesFromEmsc,
-  fetchInsivumeh: fetchLatestInsivumehEarthquake,
+  fetchInsivumeh: fetchRecentInsivumehEarthquakes,
 };
 
 export async function fetchAllGuatemalaEarthquakes(
@@ -74,8 +74,8 @@ export async function fetchAllGuatemalaEarthquakes(
   }
 
   try {
-    const insivumehQuake = await deps.fetchInsivumeh();
-    combined = mergeUnique(combined, [insivumehQuake]);
+    const insivumehQuakes = await deps.fetchInsivumeh();
+    combined = mergeUnique(combined, insivumehQuakes);
   } catch (err: any) {
     console.warn('mergedEarthquakeFetch: fallo consultando INSIVUMEH:', err.message);
   }

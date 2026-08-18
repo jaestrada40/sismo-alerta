@@ -61,7 +61,7 @@ export async function fetchLatestGuatemalaEarthquakes(): Promise<Earthquake[]> {
       sig: item.properties.sig || Math.round(mag * 70),
       felt: item.properties.felt || undefined,
       alert: item.properties.alert || (mag >= 6.0 ? 'yellow' : mag >= 5.0 ? 'green' : null),
-      department: closestDept.department,
+      department: closestDept.isWithinGuatemala ? closestDept.department : 'Fuera de Guatemala',
       intensityMercalli: `${mmi.roman} - ${mmi.level}`,
       distanceToGuatemalaCityKm: distToCapital,
     } satisfies Earthquake;
