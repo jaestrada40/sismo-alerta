@@ -123,10 +123,33 @@ export const FALLBACK_GUATEMALA_EARTHQUAKES: Earthquake[] = [
   }
 ];
 
+// Backend combines EMSC + INSIVUMEH + USGS (see server/mergedEarthquakeFetch.ts), so
+// sismos locales que INSIVUMEH detecta antes/en vez de USGS también aparecen en el feed.
+async function fetchFromBackend(minMagnitude: number): Promise<Earthquake[] | null> {
+  try {
+    const response = await fetch('/api/earthquakes', { signal: AbortSignal.timeout(6000) });
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!Array.isArray(data.earthquakes)) return null;
+    return data.earthquakes.filter((eq: Earthquake) => eq.magnitude >= minMagnitude);
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchLiveGuatemalaEarthquakes(
   timeframe: '24h' | '7d' | '30d' = '7d',
   minMagnitude: number = 2.5
 ): Promise<{ earthquakes: Earthquake[]; isLive: boolean; error?: string }> {
+  // El backend combinado solo cubre las últimas 24h (ver server/*Fetch.ts); para
+  // rangos más largos usamos USGS directo abajo, que sí soporta 7d/30d.
+  if (timeframe === '24h') {
+    const backendEarthquakes = await fetchFromBackend(minMagnitude);
+    if (backendEarthquakes && backendEarthquakes.length > 0) {
+      return { earthquakes: backendEarthquakes, isLive: true };
+    }
+  }
+
   try {
     let starttime = new Date();
     if (timeframe === '24h') {

@@ -9,6 +9,7 @@ import {
   insertReport,
   getAllReports,
 } from './db';
+import { fetchAllGuatemalaEarthquakes } from './mergedEarthquakeFetch';
 
 // Comments longer than this are rejected with a 400 (rather than silently truncated),
 // so the user gets clear feedback instead of a surprising data loss.
@@ -83,6 +84,16 @@ export function registerApiRoutes(app: Express, db: Database.Database): void {
     }
     deleteEmailSubscriptionByEmail(db, email);
     res.json({ status: 'unsubscribed' });
+  });
+
+  app.get('/api/earthquakes', async (req, res) => {
+    try {
+      const earthquakes = await fetchAllGuatemalaEarthquakes();
+      res.json({ earthquakes });
+    } catch (err: any) {
+      console.warn('routes: fallo consultando fuentes sísmicas combinadas:', err.message);
+      res.status(502).json({ error: 'No se pudo obtener datos sísmicos' });
+    }
   });
 
   app.get('/api/reports', (req, res) => {
